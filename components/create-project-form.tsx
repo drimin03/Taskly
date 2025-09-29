@@ -10,64 +10,63 @@ import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
-interface Task {
+export interface Task {
   id: string
   title: string
-  dueDate?: Date
+  dueDate?: Date // Date or undefined
 }
 
-export function CreateProjectForm({ 
-  open, 
-  onOpenChange,
-  onSubmit
-}: { 
+interface CreateProjectFormProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onSubmit: (projectData: { name: string; dueDate?: Date; tasks: Task[] }) => void
-}) {
+}
+
+export function CreateProjectForm({ open, onOpenChange, onSubmit }: CreateProjectFormProps) {
   const [projectName, setProjectName] = useState("")
   const [dueDate, setDueDate] = useState<Date | undefined>(undefined)
   const [tasks, setTasks] = useState<Task[]>([{ id: Date.now().toString(), title: "", dueDate: undefined }])
-  
+
   const handleAddTask = () => {
     setTasks([...tasks, { id: Date.now().toString(), title: "", dueDate: undefined }])
   }
-  
+
   const handleTaskChange = (id: string, field: keyof Task, value: string | Date | undefined) => {
-    setTasks(tasks.map(task => 
-      task.id === id ? { ...task, [field]: value } : task
-    ))
+    setTasks(tasks.map(task => task.id === id ? { ...task, [field]: value } : task))
   }
-  
+
   const handleRemoveTask = (id: string) => {
     if (tasks.length > 1) {
       setTasks(tasks.filter(task => task.id !== id))
     }
   }
-  
+
   const handleSubmit = () => {
     if (!projectName.trim()) return
-    
+
+    // Filter out empty tasks
+    const filteredTasks = tasks.filter(task => task.title.trim() !== "")
+
     onSubmit({
       name: projectName,
-      dueDate,
-      tasks: tasks.filter(task => task.title.trim() !== "")
+      dueDate: dueDate ?? undefined, // ensure undefined, not null
+      tasks: filteredTasks.map(task => ({ ...task, dueDate: task.dueDate ?? undefined }))
     })
-    
+
     // Reset form
     setProjectName("")
     setDueDate(undefined)
     setTasks([{ id: Date.now().toString(), title: "", dueDate: undefined }])
     onOpenChange(false)
   }
-  
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create New Project</DialogTitle>
         </DialogHeader>
-        
+
         <div className="space-y-4 py-2">
           <div className="space-y-2">
             <Label htmlFor="project-name">Project Name</Label>
@@ -78,13 +77,13 @@ export function CreateProjectForm({
               placeholder="Enter project name"
             />
           </div>
-          
+
           <div className="space-y-2">
             <Label>Due Date</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
-                  variant={"outline"}
+                  variant="outline"
                   className={`w-full justify-start text-left font-normal ${!dueDate && "text-muted-foreground"}`}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
@@ -95,13 +94,13 @@ export function CreateProjectForm({
                 <Calendar
                   mode="single"
                   selected={dueDate}
-                  onSelect={setDueDate}
+                  onSelect={(date) => setDueDate(date ?? undefined)}
                   initialFocus
                 />
               </PopoverContent>
             </Popover>
           </div>
-          
+
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label>Tasks</Label>
@@ -109,7 +108,7 @@ export function CreateProjectForm({
                 Add Task
               </Button>
             </div>
-            
+
             <div className="space-y-3 max-h-60 overflow-y-auto">
               {tasks.map((task, index) => (
                 <div key={task.id} className="space-y-2 p-3 border rounded-lg">
@@ -120,9 +119,9 @@ export function CreateProjectForm({
                       placeholder={`Task ${index + 1}`}
                     />
                     {tasks.length > 1 && (
-                      <Button 
-                        type="button" 
-                        variant="outline" 
+                      <Button
+                        type="button"
+                        variant="outline"
                         size="icon"
                         onClick={() => handleRemoveTask(task.id)}
                       >
@@ -130,13 +129,13 @@ export function CreateProjectForm({
                       </Button>
                     )}
                   </div>
-                  
+
                   <div>
                     <Label className="text-xs">Due Date</Label>
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button
-                          variant={"outline"}
+                          variant="outline"
                           size="sm"
                           className={`w-full justify-start text-left font-normal text-xs ${!task.dueDate && "text-muted-foreground"}`}
                         >
@@ -148,7 +147,7 @@ export function CreateProjectForm({
                         <Calendar
                           mode="single"
                           selected={task.dueDate}
-                          onSelect={(date) => handleTaskChange(task.id, "dueDate", date)}
+                          onSelect={(date) => handleTaskChange(task.id, "dueDate", date ?? undefined)}
                           initialFocus
                         />
                       </PopoverContent>
@@ -158,7 +157,7 @@ export function CreateProjectForm({
               ))}
             </div>
           </div>
-          
+
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancel

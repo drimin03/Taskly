@@ -10,7 +10,6 @@ const nextConfig = {
     unoptimized: true,
   },
   // Optimize build performance
-  swcMinify: true,
   reactStrictMode: false, // Disable for better performance in development
   experimental: {
     optimizePackageImports: [
