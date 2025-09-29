@@ -16,11 +16,5 @@
   },
   "regions": ["iad1"],
   "cleanUrls": true,
-  "trailingSlash": false,
-  "redirects": [
-    {
-      "source": "/",
-      "destination": "/app"
-    }
-  ]
+  "trailingSlash": false
 }
